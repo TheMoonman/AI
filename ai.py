@@ -5,7 +5,7 @@ import datetime
 import random
 from abc import ABCMeta, abstractmethod
 
-# commit to GitHub Test 2
+
 class Environment:
     version = 'v0.5'
 
@@ -58,9 +58,9 @@ class Human(Person):
 
 class AI(Person):
     def read_user_input(self, user_input):
-        split_input = self.split_line(self, user_input)
+        split_input = text_decoder.split_line(user_input)
         self.say('you said "%s"' % user_input)
-        self.say(split_input)
+        print split_input
 
 
 class TextDecoder:
@@ -225,7 +225,6 @@ class Services:
         time.sleep(duration)
 
 
-
 ai = AI('Polly')
 human = Human('User')
 env = Environment('world', ai, human)
@@ -234,10 +233,7 @@ services = Services()
 text_decoder = TextDecoder()
 answer_sets = AnswerSets()
 
-polly_text = ("Hello, my name is Polly. What is your name?",
-              "I like drawing, would you like to see my drawings?",
-              "What would you like to see? I painted a house, a tree and a cat",
-              "join")
+polly_text = ("Hello, my name is Polly. What is your name?",)
 
 polly_bye = ("Have a nice day", "Have a nice time", "Good bye",
              "See you, bye", "Pleased to talk to you", "See you",
@@ -249,28 +245,6 @@ env.run()
 
 '''
 
-
-def split_line(user_input):
-    sing_cleaning = ".,!:;()-"
-    user_input = str.lower(user_input)
-    
-    user_clean_input = ""
-    for letter in user_input:        
-        if letter in "'?":
-            user_clean_input += " " + letter
-            continue
-
-        if letter not in sing_cleaning and letter != chr(34):
-            user_clean_input += letter
-        else:
-            user_clean_input += " "
-        
-
-    user_words = user_clean_input.split()
-
-    return user_words
-
-      
 def analyze_text(user_input, c_dict):    
     for c_tuple in c_dict:
         
