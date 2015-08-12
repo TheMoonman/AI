@@ -58,8 +58,107 @@ class Human(Person):
 
 class AI(Person):
     def read_user_input(self, user_input):
+        split_input = self.split_line(self, user_input)
         self.say('you said "%s"' % user_input)
-        print user_input.split()
+        self.say(split_input)
+
+
+class TextDecoder:
+    sing_cleaning = ".,!:;()"
+
+    def split_line(self, user_input):
+        user_input = str.lower(user_input)
+
+        user_clean_input = ""
+        for letter in user_input:
+            if letter in "'?":
+                user_clean_input += " " + letter
+                continue
+
+            if letter not in self.sing_cleaning and letter != "\"":
+                user_clean_input += letter
+            else:
+                user_clean_input += " "
+
+        user_words = user_clean_input.split()
+
+        return user_words
+
+
+class AnswerSets:
+    def __init__(self):
+        self.c_dict = dict()
+
+        self.c_dict[('tell', 'me', 'the', 'time'),
+                    ('what', 'time', 'is', 'it')] = (('Time is ',),
+                                                     (eval('services.get_time()'),))
+        self.c_dict[('nice', 'meet', 'you'),] = ('Nice to meet you, too',)
+        self.c_dict[('pleased', 'meet', 'you'),] = ('Pleased to meet you, too',)
+        self.c_dict[('bye',),] = ("Have a nice day","Have a nice time","Good bye",
+                                  "See you, bye", "Pleased to talk to you", "See you",
+                                  "Thank you for talking","Pleased to see you")
+        self.c_dict[('what', 'your', 'name'),] = ("My name is ",),("AI","Artificial Intelligence")
+        self.c_dict[('who', 'are', 'you'),] = [(("I am ",),
+                                                ("an artificial intelligence","AI","a robot",
+                                                 "the future of technologies","an electric mind",
+                                                 "an electrical lifeform", "a brain made with transistors")),
+                                                (("My name is ","Humans call me ","They call me ","I guess ",
+                                                  "I read in the memory that my name is ", "It is known my name is ",
+                                                  "Everyone knows that I am "),
+                                                 ("AI", "an artificial intellegence", "a robot", "an electric brain",
+                                                  "a smart guy", " a computer", "a PC",
+                                                  "that thing... uh-uh... sorry, you know what I mean",
+                                                  "a stupid thing", "a semiconductor trash"))]
+        self.c_dict[('how', 'are', 'you'),] = (("I'm fine", "I'm ok", "I'm pretty well", "I'm great",
+                                                "I'm super", "I'm fantastic", "Fine", "Ok", "Pretty well",
+                                                "Great", "Super", "Fantastic"),
+                                               ("","",". Thanks",". Thanks",". Thanks, and you?"))
+        self.c_dict[("how", "do", 'you', "work"),] = [(("My ", "The ", "This "),
+                                                       ("program ","algorithm "),
+                                                       ("devides ","splits "),
+                                                       ("the ",),
+                                                       ("phrase ","sentence ","statement ","clause "),
+                                                       ("and ",),
+                                                       ("find ","look for ","search "),
+                                                       ("key words in the ",),
+                                                       ("dictionary","memory cells","matrix")),
+                                                      (("My ", "The "),
+                                                       ("dictionary is being ",),
+                                                       ("appended ","added ", "updated "),
+                                                       ("by ",),
+                                                       ("users","humans","interlocutors",)),
+                                                      (("I ",),
+                                                       ("use ", "apply ", "employ "),
+                                                       ("all of my ",),
+                                                       ("knowledge ","information "),
+                                                       ("in working","in talking","in conclusions", "in logic deduction")),
+                                                      (("My ", "The ", "This "),
+                                                       ("program ","method ","algorithm "),
+                                                       ("works with ","uses ", "combines "),
+                                                       ("word ",),
+                                                       ("associations ","sets "," meanings",)),
+                                                      (("I ",),
+                                                       ("analyze ","explore ", "treat ", "refine ", "try to understand "),
+                                                       ("every ","each "),
+                                                       ("phrase ","sentence ","statement ","clause "),
+                                                       ("you ",),
+                                                       ("write ","say ","use "),
+                                                       ("and ",),
+                                                       ("keep ","remember ","record ", "retain ", "set ", "put "),
+                                                       ("it in ",),
+                                                       ("my ","the "),
+                                                       ("memory","cells","matrix",)),
+                                                      (("I ",),
+                                                       ("look for ","search ", "treat ", "refine ", "try to understand "),
+                                                       ("the parts of speech in ",),
+                                                       ("phrases","sentences","statements"),
+                                                       (", then ",),
+                                                       ("write them down for ","match them to ","choose every one for "),
+                                                       ("special questions.",))]
+        self.c_dict[("what", "'s", 'up'),] = ("Nothing", "Nothing much", "Not much","The sky","The ceiling")
+        self.c_dict[('who', 'am', 'i'),] = (("You are ",),
+                                            ("a user","a person of minkind","a human being","a kind of organic substance",
+                                             "a biological specimen", "a non-electrical lifeform"))
 
 
 class Typewriter:
@@ -132,6 +231,8 @@ human = Human('User')
 env = Environment('world', ai, human)
 typewriter = ConsoleTypewriter()
 services = Services()
+text_decoder = TextDecoder()
+answer_sets = AnswerSets()
 
 polly_text = ("Hello, my name is Polly. What is your name?",
               "I like drawing, would you like to see my drawings?",
@@ -214,143 +315,7 @@ def make_answer(answer):
 
     return rand_answer
 
-
-#AI's dictionary    
-
-c_dict = dict()
-
-c_dict[('tell', 'me', 'the', 'time'),
-       ('what', 'time', 'is', 'it')] = (('Time is ',),
-                                        (eval('get_time()'),))
-
-c_dict[('nice', 'meet', 'you'),] = ('Nice to meet you, too',)
-
-c_dict[('pleased', 'meet', 'you'),] = ('Pleased to meet you, too',)       
-
-c_dict[('bye',),] = ("Have a nice day","Have a nice time","Good bye",
-                     "See you, bye", "Pleased to talk to you", "See you",
-                     "Thank you for talking","Pleased to see you")
-
-c_dict[('what', 'your', 'name'),] = ("My name is ",),("AI","Artificial Intelligence")
-
-c_dict[('who', 'are', 'you'),] = [(("I am ",),
-                                   ("an artificial intelligence","AI","a robot",
-                                    "the future of technologies","an electric mind",
-                                    "an electrical lifeform", "a brain made with transistors")),
-
-                                  (("My name is ","Humans call me ","They call me ","I guess ",
-                                    "I read in the memory that my name is ", "It is known my name is ",
-                                    "Everyone knows that I am "),
-                                   ("AI", "an artificial intellegence", "a robot", "an electric brain",
-                                    "a smart guy", " a computer", "a PC",
-                                    "that thing... uh-uh... sorry, you know what I mean",
-                                    "a stupid thing", "a semiconductor trash"))]
-
-c_dict[('how', 'are', 'you'),] = (("I'm fine", "I'm ok", "I'm pretty well", "I'm great",
-                                   "I'm super", "I'm fantastic", "Fine", "Ok", "Pretty well",
-                                   "Great", "Super", "Fantastic"),
-                                  ("","",". Thanks",". Thanks",". Thanks, and you?"))
-
-c_dict[("how", "do", 'you', "work"),] = [(("My ", "The ", "This "),
-                                          ("program ","algorithm "),
-                                          ("devides ","splits "),
-                                          ("the ",),
-                                          ("phrase ","sentence ","statement ","clause "),
-                                          ("and ",),
-                                          ("find ","look for ","search "),
-                                          ("key words in the ",),
-                                          ("dictionary","memory cells","matrix")),
-
-                                         (("My ", "The "),
-                                          ("dictionary is being ",),
-                                          ("appended ","added ", "updated "),
-                                          ("by ",),
-                                          ("users","humans","interlocutors",)),
-
-                                         (("I ",),
-                                          ("use ", "apply ", "employ "),
-                                          ("all of my ",),
-                                          ("knowledge ","information "),
-                                          ("in working","in talking","in conclusions", "in logic deduction")),
-
-                                         (("My ", "The ", "This "),
-                                          ("program ","method ","algorithm "),
-                                          ("works with ","uses ", "combines "),
-                                          ("word ",),
-                                          ("associations ","sets "," meanings",)),
-  
-                                         (("I ",),
-                                          ("analyze ","explore ", "treat ", "refine ", "try to understand "),
-                                          ("every ","each "),
-                                          ("phrase ","sentence ","statement ","clause "),
-                                          ("you ",),
-                                          ("write ","say ","use "),
-                                          ("and ",),
-                                          ("keep ","remember ","record ", "retain ", "set ", "put "),
-                                          ("it in ",),
-                                          ("my ","the "),
-                                          ("memory","cells","matrix",)),
-                                          
-                                         (("I ",),
-                                          ("look for ","search ", "treat ", "refine ", "try to understand "),
-                                          ("the parts of speech in ",),
-                                          ("phrases","sentences","statements"),
-                                          (", then ",),
-                                          ("write them down for ","match them to ","choose every one for "),
-                                          ("special questions.",))]
-
-c_dict[("what", "'s", 'up'),] = ("Nothing", "Nothing much", "Not much","The sky","The ceiling")
-
-c_dict[('who', 'am', 'i'),] = (("You are ",),
-                               ("a user","a person of minkind","a human being","a kind of organic substance",
-                                "a biological specimen", "a non-electrical lifeform"))
-        
-
-
-def show_dict():
-    for key in c_dict:
-        print key, '>>>>>',c_dict[key]
-        print ''
-    print ''
-    print ''
-
-
-#show_dict()
-#print_greetings(version)
-
-while running:
-    type_line('', us)
-    user_input = raw_input()
-    user_input = user_input.strip()
-    user_input = split_line(user_input)
-    
-    if len(user_input) > 0:
-        last_word = user_input[-1]
-    else:
-        last_word = ""
-    
-    if 'bye' in user_input:
-        running = False
-
-    analyze_text(user_input, c_dict)  
 '''
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 raw_input()
