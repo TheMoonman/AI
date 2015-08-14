@@ -23,13 +23,14 @@ class Environment:
     def run(self):
         self.print_greetings()
 
+        '''
         text = services.choose_random(polly_hello)
         ai.say(text)
         answer = human.write()
         if answer == '':
             answer = 'Anonymous'
         ai.say('Hello, %s' % (answer))
-        
+        '''
         while env.running:
             answer = human.write()
             
@@ -91,25 +92,31 @@ class TextDecoder:
 
 
 class TextAnalyzer:
-    def analyze(self, word_list):
-        for key in answer_sets.c_dict:
-            for key_words_tuple in key:
-                match = self.check_match(key_words_tuple, word_list)
+    def analyze(self, split_input):
+
+        match = False
+
+        for key in answer_sets.answer_dict:
+            for word in split_input:
+                print key, word
                 if match:
-                    return answer_synth.synth_answer(answer_sets.c_dict[key])
+                    return "Some text"
+                    #return answer_synth.synth_answer(answer_sets.answer_dict[key])
         return "What?"
 
-    def check_match(self, key_words_tuple, word_list):
-        count = 0
-
-        for key_word in key_words_tuple:
-            for mean in word_list:
-                if key_word == mean:
-                    count += 1
-            if count >= len(key_words_tuple):
-                return True
-
-        return False
+    # def check_match(self, key_words_tuple, split_input):
+    #     count = 0
+    #
+    #     print split_input, key_words_tuple
+    #
+    #     for key_word in key_words_tuple:
+    #         for mean in split_input:
+    #             if key_word == mean:
+    #                 count += 1
+    #         if count >= len(key_words_tuple):
+    #             return True
+    #
+    #     return False
 
 class AnswerSynth:
     def synth_answer(self, answer_set):
@@ -139,78 +146,17 @@ class AnswerSynth:
 
 class AnswerSets:
     def __init__(self):
-        self.c_dict = dict()
+        self.answer_dict = dict()
 
-        self.c_dict[('tell', 'me', 'the', 'time'),
-                    ('what', 'time', 'is', 'it')] = (('Time is ',),
-                                                     (eval('services.get_time()'),))
-        self.c_dict[('nice', 'meet', 'you'),] = ('Nice to meet you, too',)
-        self.c_dict[('pleased', 'meet', 'you'),] = ('Pleased to meet you, too',)
-        self.c_dict[('bye',),] = ("Have a nice day","Have a nice time","Good bye",
-                                  "See you, bye", "Pleased to talk to you", "See you",
-                                  "Thank you for talking","Pleased to see you")
-        self.c_dict[('what', 'your', 'name'),] = ("My name is ",""),(ai.name,)
-        self.c_dict[('who', 'are', 'you'),] = [(("I am ",),
-                                                ("an artificial intelligence","AI","a robot",
-                                                 "the future of technologies","an electric mind",
-                                                 "an electrical lifeform", "a brain made with transistors")),
-                                                (("My name is ","Humans call me ","They call me ","I guess ",
-                                                  "I read in the memory that my name is ", "It is known my name is ",
-                                                  "Everyone knows that I am "),
-                                                 ("AI", "an artificial intellegence", "a robot", "an electric brain",
-                                                  "a smart girl", " a computer", "a PC",
-                                                  "that thing... uh-uh... sorry, you know what I mean",
-                                                  "a stupid thing", ai.name))]
-        self.c_dict[('how', 'are', 'you'),] = (("I'm fine", "I'm ok", "I'm pretty well", "I'm great",
-                                                "I'm super", "I'm fantastic", "Fine", "Ok", "Pretty well",
-                                                "Great", "Super", "Fantastic"),
-                                               ("","",". Thanks",". Thanks",". Thanks, and you?"))
-        self.c_dict[("how", "do", 'you', "work"),] = [(("My ", "The ", "This "),
-                                                       ("program ","algorithm "),
-                                                       ("devides ","splits "),
-                                                       ("the ",),
-                                                       ("phrase ","sentence ","statement ","clause "),
-                                                       ("and ",),
-                                                       ("find ","look for ","search "),
-                                                       ("key words in the ",),
-                                                       ("dictionary","memory cells","matrix")),
-                                                      (("My ", "The "),
-                                                       ("dictionary is being ",),
-                                                       ("appended ","added ", "updated "),
-                                                       ("by ",),
-                                                       ("users","humans","interlocutors",)),
-                                                      (("I ",),
-                                                       ("use ", "apply ", "employ "),
-                                                       ("all of my ",),
-                                                       ("knowledge ","information "),
-                                                       ("in working","in talking","in conclusions", "in logic deduction")),
-                                                      (("My ", "The ", "This "),
-                                                       ("program ","method ","algorithm "),
-                                                       ("works with ","uses ", "combines "),
-                                                       ("word ",),
-                                                       ("associations ","sets "," meanings",)),
-                                                      (("I ",),
-                                                       ("analyze ","explore ", "treat ", "refine ", "try to understand "),
-                                                       ("every ","each "),
-                                                       ("phrase ","sentence ","statement ","clause "),
-                                                       ("you ",),
-                                                       ("write ","say ","use "),
-                                                       ("and ",),
-                                                       ("keep ","remember ","record ", "retain ", "set ", "put "),
-                                                       ("it in ",),
-                                                       ("my ","the "),
-                                                       ("memory","cells","matrix",)),
-                                                      (("I ",),
-                                                       ("look for ","search ", "treat ", "refine ", "try to understand "),
-                                                       ("the parts of speech in ",),
-                                                       ("phrases","sentences","statements"),
-                                                       (", then ",),
-                                                       ("write them down for ","match them to ","choose every one for "),
-                                                       ("special questions.",))]
-        self.c_dict[("what", "'s", 'up'),] = ("Nothing", "Nothing much", "Not much","The sky","The ceiling")
-        self.c_dict[('who', 'am', 'i'),] = (("You are ",),
-                                            ("a user","a person of minkind","a human being","a kind of organic substance",
-                                             "a biological specimen", "a non-electrical lifeform"))
+        f = open('dict.txt')
+        for line in f:
+            split_line = line.split('>>>')
+            key, value = split_line
+            split_key = tuple(key.split())
+            self.answer_dict[split_key] = value
+            print split_key, value
+
+
 
 class Typewriter:
     __metaclass__ = ABCMeta
