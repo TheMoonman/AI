@@ -23,8 +23,12 @@ class Environment:
     def run(self):
         self.print_greetings()
 
-        text = services.choose_random(polly_text)
+        text = services.choose_random(polly_hello)
         ai.say(text)
+        answer = human.write()
+        if answer == '':
+            answer = 'Anonymous'
+        ai.say('Hello, %s' % (answer))
         
         while env.running:
             answer = human.write()
@@ -44,7 +48,7 @@ class Person:
         self.name = name
 
     def say(self, text):
-        typewriter.type_line(self, text)
+        typewriter.type_person_line(self, text)
 
     def draw(self, text):
         typewriter.draw(self, text)
@@ -59,19 +63,20 @@ class Human(Person):
 class AI(Person):
     def read_user_input(self, user_input):
         split_input = text_decoder.split_line(user_input)
-        self.say('you said "%s"' % user_input)
-        print split_input
+        answer = text_analyzer.analyze(split_input)
+        self.say(answer)
 
 
 class TextDecoder:
-    sing_cleaning = ".,!:;()"
+    sing_cleaning = ".,!:;()?"
 
     def split_line(self, user_input):
         user_input = str.lower(user_input)
 
         user_clean_input = ""
         for letter in user_input:
-            if letter in "'?":
+            # if letter in "'?":
+            if letter in "'":
                 user_clean_input += " " + letter
                 continue
 
@@ -83,6 +88,53 @@ class TextDecoder:
         user_words = user_clean_input.split()
 
         return user_words
+
+
+class TextAnalyzer:
+    def analyze(self, word_list):
+        for key in answer_sets.c_dict:
+            for key_words_tuple in key:
+                match = self.check_match(key_words_tuple, word_list)
+                if match:
+                    return answer_synth.synth_answer(answer_sets.c_dict[key])
+        return "What?"
+
+    def check_match(self, key_words_tuple, word_list):
+        count = 0
+
+        for key_word in key_words_tuple:
+            for mean in word_list:
+                if key_word == mean:
+                    count += 1
+            if count >= len(key_words_tuple):
+                return True
+
+        return False
+
+class AnswerSynth:
+    def synth_answer(self, answer_set):
+        return self.choose_general_answer(answer_set)
+
+    def choose_general_answer(self, answer_set):
+        if type(answer_set) == list:
+            rand_answer = services.choose_random(answer_set)
+            return self.make_answer(rand_answer)
+        elif type(answer_set) == tuple:
+            return self.make_answer(answer_set)
+        else:
+            return "Nothing"
+
+    def make_answer(self, answer_set):
+        rand_answer = ''
+
+        for item in answer_set:
+            if type(item) == str:
+                rand_answer += services.choose_random(answer_set)
+                break
+            else:
+                rand_answer += self.make_answer(item)
+
+        return rand_answer
 
 
 class AnswerSets:
@@ -97,7 +149,7 @@ class AnswerSets:
         self.c_dict[('bye',),] = ("Have a nice day","Have a nice time","Good bye",
                                   "See you, bye", "Pleased to talk to you", "See you",
                                   "Thank you for talking","Pleased to see you")
-        self.c_dict[('what', 'your', 'name'),] = ("My name is ",),("AI","Artificial Intelligence")
+        self.c_dict[('what', 'your', 'name'),] = ("My name is ",""),(ai.name,)
         self.c_dict[('who', 'are', 'you'),] = [(("I am ",),
                                                 ("an artificial intelligence","AI","a robot",
                                                  "the future of technologies","an electric mind",
@@ -106,9 +158,9 @@ class AnswerSets:
                                                   "I read in the memory that my name is ", "It is known my name is ",
                                                   "Everyone knows that I am "),
                                                  ("AI", "an artificial intellegence", "a robot", "an electric brain",
-                                                  "a smart guy", " a computer", "a PC",
+                                                  "a smart girl", " a computer", "a PC",
                                                   "that thing... uh-uh... sorry, you know what I mean",
-                                                  "a stupid thing", "a semiconductor trash"))]
+                                                  "a stupid thing", ai.name))]
         self.c_dict[('how', 'are', 'you'),] = (("I'm fine", "I'm ok", "I'm pretty well", "I'm great",
                                                 "I'm super", "I'm fantastic", "Fine", "Ok", "Pretty well",
                                                 "Great", "Super", "Fantastic"),
@@ -160,7 +212,6 @@ class AnswerSets:
                                             ("a user","a person of minkind","a human being","a kind of organic substance",
                                              "a biological specimen", "a non-electrical lifeform"))
 
-
 class Typewriter:
     __metaclass__ = ABCMeta
     
@@ -173,7 +224,11 @@ class Typewriter:
         pass
 
     @abstractmethod
-    def type_line(self, person, text):
+    def type_line(self, text):
+        pass
+
+    @abstractmethod
+    def type_person_line(self, person, text):
         pass
 
 
@@ -188,7 +243,10 @@ class ConsoleTypewriter(Typewriter):
         self.type_person_name(person)
         print text
 
-    def type_line(self, person, text):
+    def type_line(self, text):
+        print text
+
+    def type_person_line(self, person, text):
         self.type_person_name(person)
         split_text = text.split()
 
@@ -231,65 +289,17 @@ env = Environment('world', ai, human)
 typewriter = ConsoleTypewriter()
 services = Services()
 text_decoder = TextDecoder()
+text_analyzer = TextAnalyzer()
+answer_synth = AnswerSynth()
 answer_sets = AnswerSets()
 
-polly_text = ("Hello, my name is Polly. What is your name?",)
+polly_hello = ("Hello, my name is Polly. What is your name?",)
 
 polly_bye = ("Have a nice day", "Have a nice time", "Good bye",
              "See you, bye", "Pleased to talk to you", "See you",
              "Thank you for talking", "Pleased to see you", "Bye-bye")
 
 env.run()
-
-
-
-'''
-
-def analyze_text(user_input, c_dict):    
-    for c_tuple in c_dict:
-        
-        for a_tuple in c_tuple:
-            count = 0
-        
-            for word in a_tuple:
-                for mean in user_input:
-                    if word == mean:           
-                        count += 1
-
-            if count >= len(a_tuple):
-                answer = choose_general_answer(c_dict[c_tuple])
-                return type_line(answer, ai)
-                break
-
-
-def choose_general_answer(answer):
-    if type(answer) == list:
-        rand_answer = choose_random(answer)
-        return make_answer(rand_answer)
-    elif type(answer) == tuple:
-        return make_answer(answer)
-    else:
-        return "nothing"
-
-
-def make_answer(answer):
-    rand_answer = ''
-    
-    for item in answer:
-        if type(item) == str:
-            if rand_answer == '':
-                rand_answer += choose_random(answer)
-                break
-            else:
-                return
-        else:
-            make_answer(item)
-
-        rand_answer += choose_random(item)
-
-    return rand_answer
-
-'''
 
 
 raw_input()
