@@ -1,1 +1,5 @@
-tell & me   the & time   + doing make .ing   - ? back >>> hello, I understand
+tell & me   the & time   + doing make > ing   - ? back >>> hello, I understand
+tell me >>> this was tell me
+will be
+what time is it >>> 14:53
+add five and seven >>> the result is twelve

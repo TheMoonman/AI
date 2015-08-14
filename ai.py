@@ -69,15 +69,14 @@ class AI(Person):
 
 
 class TextDecoder:
-    sing_cleaning = ".,!:;()?"
+    sing_cleaning = ".,!:;()"
 
     def split_line(self, user_input):
         user_input = str.lower(user_input)
 
         user_clean_input = ""
         for letter in user_input:
-            # if letter in "'?":
-            if letter in "'":
+            if letter in "'" and letter in "'?":
                 user_clean_input += " " + letter
                 continue
 
@@ -93,50 +92,40 @@ class TextDecoder:
 
 class TextAnalyzer:
     def analyze(self, split_input):
-
-        match = False
-
         for key in answer_sets.answer_dict:
-            for word in split_input:
-                print key, word
-                if match:
-                    return "Some text"
-                    #return answer_synth.synth_answer(answer_sets.answer_dict[key])
+            key_iter = iter(key)
+            cur_key_word = key_iter.next()
+
+            for user_word in split_input:
+                print user_word, cur_key_word
+                if user_word == cur_key_word:
+                    cur_key_word = services.try_next(key_iter)
+
+                    if cur_key_word is None:
+                        print "stop iter"
+                        return answer_synth.synth_answer(answer_sets.answer_dict[key])
         return "What?"
 
-    # def check_match(self, key_words_tuple, split_input):
-    #     count = 0
-    #
-    #     print split_input, key_words_tuple
-    #
-    #     for key_word in key_words_tuple:
-    #         for mean in split_input:
-    #             if key_word == mean:
-    #                 count += 1
-    #         if count >= len(key_words_tuple):
-    #             return True
-    #
-    #     return False
 
 class AnswerSynth:
-    def synth_answer(self, answer_set):
-        return self.choose_general_answer(answer_set)
+    def synth_answer(self, answer):
+        return self.choose_general_answer(answer)
 
-    def choose_general_answer(self, answer_set):
-        if type(answer_set) == list:
-            rand_answer = services.choose_random(answer_set)
+    def choose_general_answer(self, answer):
+        if type(answer) == list:
+            rand_answer = services.choose_random(answer)
             return self.make_answer(rand_answer)
-        elif type(answer_set) == tuple:
-            return self.make_answer(answer_set)
+        elif type(answer) == tuple:
+            return self.make_answer(answer)
         else:
-            return "Nothing"
+            return answer
 
     def make_answer(self, answer_set):
         rand_answer = ''
 
         for item in answer_set:
             if type(item) == str:
-                rand_answer += services.choose_random(answer_set)
+                rand_answer += tservices.choose_random(answer_set)
                 break
             else:
                 rand_answer += self.make_answer(item)
@@ -147,10 +136,13 @@ class AnswerSynth:
 class AnswerSets:
     def __init__(self):
         self.answer_dict = dict()
+        self.splitter = '>>>'
 
         f = open('dict.txt')
         for line in f:
-            split_line = line.split('>>>')
+            if self.splitter not in line:
+                continue
+            split_line = line.split(self.splitter)
             key, value = split_line
             split_key = tuple(key.split())
             self.answer_dict[split_key] = value
@@ -218,7 +210,7 @@ class Services:
 
     def get_time(self):
         now_time = datetime.datetime.now()
-        now_time = now_time.strftime("%H:%M:%S")
+        now_time = now_time.strftime("%H:%M")
         return now_time
 
     def choose_random(self, collection):
@@ -227,6 +219,12 @@ class Services:
 
     def sleep(self, duration):
         time.sleep(duration)
+
+    def try_next(self, iterator):
+        try:
+            return iterator.next()
+        except StopIteration:
+            return None
 
 
 ai = AI('Polly')
