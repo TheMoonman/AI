@@ -3,6 +3,8 @@
 import time
 import datetime
 import random
+import traceback
+import math
 from abc import ABCMeta, abstractmethod
 
 
@@ -23,14 +25,13 @@ class Environment:
     def run(self):
         self.print_greetings()
 
-        '''
         text = services.choose_random(polly_hello)
         ai.say(text)
         answer = human.write()
         if answer == '':
             answer = 'Anonymous'
         ai.say('Hello, %s' % (answer))
-        '''
+
         while env.running:
             answer = human.write()
             
@@ -94,16 +95,17 @@ class TextAnalyzer:
     def analyze(self, split_input):
         for key in answer_sets.answer_dict:
             key_iter = iter(key)
-            cur_key_word = key_iter.next()
+            cur_key_word = services.try_next(key_iter)
 
             for user_word in split_input:
-                print user_word, cur_key_word
                 if user_word == cur_key_word:
                     cur_key_word = services.try_next(key_iter)
 
                     if cur_key_word is None:
-                        print "stop iter"
-                        return answer_synth.synth_answer(answer_sets.answer_dict[key])
+                        answer = answer_sets.answer_dict[key]
+                        if answer.strip() == 'calc':
+                            return str(calc())
+                        return answer_synth.synth_answer(answer)
         return "What?"
 
 
@@ -125,7 +127,7 @@ class AnswerSynth:
 
         for item in answer_set:
             if type(item) == str:
-                rand_answer += tservices.choose_random(answer_set)
+                rand_answer += services.choose_random(answer_set)
                 break
             else:
                 rand_answer += self.make_answer(item)
@@ -146,8 +148,6 @@ class AnswerSets:
             key, value = split_line
             split_key = tuple(key.split())
             self.answer_dict[split_key] = value
-            print split_key, value
-
 
 
 class Typewriter:
@@ -227,6 +227,41 @@ class Services:
             return None
 
 
+class Calc:
+    def __init__(self, a=0.0, b=0.0,
+                 func_string='a + b', round=3,
+                 phrase='The result for a and b is'):
+        (filename, line_number, function_name, text) = \
+            traceback.extract_stack()[-2]
+        self.name = text[:text.find('=')].strip()
+        self.func_string = func_string
+        self.func = None
+        self.round = round
+        self.a = a
+        self.b = b
+        self.phrase = phrase
+
+    def set_func(self, func_string):
+        exec('%s.func = lambda a,b: %s' % (self.name, func_string))
+        self.func_string = func_string
+
+    def get_func(self):
+        return self.func_string
+
+    def func(self, a, b):
+        return self.func(a, b), 3
+
+    def __call__(self):
+        try:
+            if self.func is None:
+                self.set_func(self.func_string)
+            result = round(self.func(float(self.a),
+                           float(self.b)), self.round)
+            return '%s %s' % (self.phrase, result)
+        except Exception, message:
+            return 'error: %s' % message
+
+
 ai = AI('Polly')
 human = Human('User')
 env = Environment('world', ai, human)
@@ -236,6 +271,8 @@ text_decoder = TextDecoder()
 text_analyzer = TextAnalyzer()
 answer_synth = AnswerSynth()
 answer_sets = AnswerSets()
+calc = Calc(7, 12, 'a*a + b*b', round=3, phrase='7*7 + 12*12 is equal')
+
 
 polly_hello = ("Hello, my name is Polly. What is your name?",)
 
